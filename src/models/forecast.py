@@ -4,7 +4,8 @@ from pathlib import Path
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
 
-DATA_PATH = Path(__file__).resolve().parents[2] / 'data' / 'processed' / 'ethiopia_fi_unified_data_enriched.csv'
+from src.data_loader import load_enriched_data
+
 OUT_DIR = Path(__file__).resolve().parents[2] / 'data' / 'processed'
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -37,13 +38,22 @@ def fit_model(pivot):
     y = df['account_ownership'] if 'account_ownership' in df.columns else None
     # drop rows with NaN in y
     train = pd.concat([X,y], axis=1).dropna()
-    if train.shape[0] < 2:
-        raise ValueError('Not enough data to fit model')
-    X_train = train[['year','mobile_subscribers','g4']]
-    y_train = train['account_ownership']
-    model = LinearRegression()
-    model.fit(X_train, y_train)
-    return model, X_train, y_train
+    # If there are not enough rows with full predictors, fall back to year-only model
+    if train.shape[0] >= 2:
+        X_train = train[['year','mobile_subscribers','g4']]
+        y_train = train['account_ownership']
+        model = LinearRegression()
+        model.fit(X_train.fillna(0), y_train)
+        return model, X_train, y_train
+    # fallback: use year-only if possible
+    train2 = pd.concat([X[['year']], y], axis=1).dropna()
+    if train2.shape[0] >= 2:
+        X_train = train2[['year']]
+        y_train = train2['account_ownership']
+        model = LinearRegression()
+        model.fit(X_train, y_train)
+        return model, X_train, y_train
+    raise ValueError('Not enough data to fit any model')
 
 
 def forecast(model, pivot, years=[2025,2026,2027], mobile_growth_rate=0.03, g4_increase_pp=3.0):
@@ -60,16 +70,20 @@ def forecast(model, pivot, years=[2025,2026,2027], mobile_growth_rate=0.03, g4_i
         if not np.isnan(g4):
             g4 = last_g4 + g4_increase_pp * years_ahead
         rows.append({'year': y, 'mobile_subscribers': mobile, 'g4': g4})
-    Xf = pd.DataFrame(rows)[['year','mobile_subscribers','g4']]
-    preds = model.predict(Xf.fillna(0))
+    Xf_all = pd.DataFrame(rows)
+    # build Xf with same columns used for training
+    if hasattr(model, 'n_features_in_') and model.n_features_in_ == 1:
+        Xf = Xf_all[['year']]
+    else:
+        # default to year, mobile_subscribers, g4 (fill missing with 0)
+        Xf = Xf_all[['year','mobile_subscribers','g4']].fillna(0)
+    preds = model.predict(Xf)
     Xf['account_ownership_pred'] = preds
     return Xf
 
 
 def main():
-    df = pd.read_csv(DATA_PATH)
-    df['observation_date'] = pd.to_datetime(df['observation_date'], errors='coerce')
-    df['value_numeric'] = pd.to_numeric(df['value_numeric'], errors='coerce')
+    df = load_enriched_data()
     obs = load_observations(df)
     pivot = prepare_features(obs)
     model, X_train, y_train = fit_model(pivot)

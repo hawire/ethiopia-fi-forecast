@@ -10,7 +10,12 @@ FIG_DIR = OUT_DIR / 'figures'
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 FIG_DIR.mkdir(parents=True, exist_ok=True)
 
-def load_data(path):
+from src.data_loader import load_enriched_data
+
+
+def load_data(path=None):
+    if path is None:
+        return load_enriched_data()
     df = pd.read_csv(path)
     df['observation_date'] = pd.to_datetime(df['observation_date'], errors='coerce')
     df['value_numeric'] = pd.to_numeric(df['value_numeric'], errors='coerce')

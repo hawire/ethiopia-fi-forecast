@@ -5,3 +5,6 @@ plotly
 jupyter
 openpyxl
 xlrd
+scikit-learn
+streamlit
+pillow

@@ -35,6 +35,11 @@ def run_all(seed: int = 42):
     forecast_advanced.plot_forecasts(results, years, obs_df)
     print('Validation:', meta['validation'])
 
+    print('=== Forecast validation suite ===')
+    from src.models import forecast_validation
+    _, val_summary = forecast_validation.run_validation_suite(obs_df)
+    print(val_summary.to_string(index=False))
+
     print('=== Backtesting ===')
     detail_df, summary_df = backtesting.run_indicator_backtests(obs_df)
     backtesting.save_backtest_results(detail_df, summary_df)

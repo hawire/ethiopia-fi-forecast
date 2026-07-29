@@ -17,6 +17,7 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression
 
 from src.data_loader import load_enriched_data
+from src.models.scenario_config import SCENARIO_PARAMS
 
 OUT_DIR = Path(__file__).resolve().parents[2] / 'data' / 'processed'
 FIG_DIR = Path(__file__).resolve().parents[2] / 'reports' / 'figures'
@@ -24,28 +25,6 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 FIG_DIR.mkdir(parents=True, exist_ok=True)
 
 DEFAULT_SEED = 42
-
-# Scenario parameters act on *changes* and event boosts, not raw levels.
-SCENARIO_PARAMS = {
-    'pessimistic': {
-        'growth_scale': 0.6,
-        'event_scale': 0.5,
-        'residual_scale': 1.3,
-        'description': 'Slower trend growth and weaker event transmission',
-    },
-    'base': {
-        'growth_scale': 1.0,
-        'event_scale': 1.0,
-        'residual_scale': 1.0,
-        'description': 'Continuation of estimated trend plus calibrated events',
-    },
-    'optimistic': {
-        'growth_scale': 1.4,
-        'event_scale': 1.5,
-        'residual_scale': 1.2,
-        'description': 'Faster adoption and stronger event pass-through',
-    },
-}
 
 # Fallback additive effects (percentage points) if impact links are unavailable
 DEFAULT_EVENT_EFFECTS = {

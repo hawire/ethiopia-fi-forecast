@@ -87,3 +87,17 @@ def test_legacy_scenario_scaling_api():
     fc = {'mean': np.array([10.0, 20.0]), 'lower': np.array([9.0, 19.0]), 'upper': np.array([11.0, 21.0])}
     scaled = forecast_advanced.scenario_scaling(fc, 'optimistic')
     np.testing.assert_allclose(scaled['mean'], np.array([13.0, 26.0]))
+
+
+def test_scenario_config_and_analysis_integration():
+    from src.models import forecast_validation, scenario_analysis, scenario_config
+
+    assert 'base' in scenario_config.SCENARIO_CONFIG
+    assert 'growth_scale' in scenario_config.get_scenario_params('optimistic')
+    path = scenario_analysis.generate_scenario_forecast([50.0, 52.0, 54.0], 2.0, 0.02)
+    assert len(path) == 3
+    assert path[0] == pytest.approx(50.0)
+    assert path[1] == pytest.approx(52.02)
+    stats = forecast_validation.validate_series([10, 20], [11, 18])
+    assert stats['n'] == 2
+    assert np.isfinite(stats['mae'])

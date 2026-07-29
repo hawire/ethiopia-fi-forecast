@@ -1,0 +1,7 @@
+train_end_year,target_year,y_true,y_pred,horizon,indicator,indicator_code,method,held_out_year
+2017.0,2021.0,46.0,52.33333333333394,1.0,access,account_ownership,expanding_window,
+2021.0,2024.0,49.0,56.94594594594673,1.0,access,account_ownership,expanding_window,
+,,22.0,29.72972972972957,,access,account_ownership,leave_one_out,2014.0
+,,35.0,31.455696202531726,,access,account_ownership,leave_one_out,2017.0
+,,46.0,42.20253164556925,,access,account_ownership,leave_one_out,2021.0
+,,49.0,56.94594594594673,,access,account_ownership,leave_one_out,2024.0

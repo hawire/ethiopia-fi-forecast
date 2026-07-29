@@ -39,7 +39,14 @@ Collection date: 2026-07-19
   - collection_date: 2026-07-19
   - notes: Useful proxy for potential mobile-money reach.
 
+## Schema / QA fixes (2026-07-29)
+
+- Corrected **event** row alignment so `observation_date` holds the event date (previously shifted into `value_numeric`).
+- Rewrote **impact_link** rows to the 16-column enriched schema; magnitude, lag, and direction are encoded in `notes` as `key=value` pairs for the event-impact parser.
+- Added historical Findex **account ownership** observations for 2014 (22%) and 2017 (35%) to support trend fitting and backtesting.
+- Added 2021 **digital payment adoption** observation (~19%, medium confidence) to enable a two-point usage trend.
+
 ## Next steps recommended
 - Validate agent density and 4G coverage figures with NBE and GSMA detailed reports.
 - (Task) Add regional and gender-disaggregated observations if Findex microdata accessible.
-- Create `task-1` Git branch, commit `data/processed/ethiopia_fi_unified_data_enriched.csv`, and open PR merging into `main`.
+- Re-run `python -m src.run_pipeline` after any data refresh; confirm tests with `python -m pytest -q`.

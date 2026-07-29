@@ -5,6 +5,7 @@ from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
 
 from src.data_loader import load_enriched_data
+from src.models.metrics import summarize_errors
 
 OUT_DIR = Path(__file__).resolve().parents[2] / 'data' / 'processed'
 OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -39,13 +40,13 @@ def fit_model(pivot):
     # drop rows with NaN in y
     train = pd.concat([X,y], axis=1).dropna()
     # If there are not enough rows with full predictors, fall back to year-only model
-    if train.shape[0] >= 2:
+    if train.shape[0] >= 2 and train[['mobile_subscribers','g4']].notna().all(axis=1).sum() >= 2:
         X_train = train[['year','mobile_subscribers','g4']]
         y_train = train['account_ownership']
         model = LinearRegression()
         model.fit(X_train.fillna(0), y_train)
         return model, X_train, y_train
-    # fallback: use year-only if possible
+    # Prefer year-only when covariates are mostly missing (avoids degenerate zero-filled fit)
     train2 = pd.concat([X[['year']], y], axis=1).dropna()
     if train2.shape[0] >= 2:
         X_train = train2[['year']]
@@ -53,7 +54,22 @@ def fit_model(pivot):
         model = LinearRegression()
         model.fit(X_train, y_train)
         return model, X_train, y_train
+    if train.shape[0] >= 2:
+        X_train = train[['year','mobile_subscribers','g4']]
+        y_train = train['account_ownership']
+        model = LinearRegression()
+        model.fit(X_train.fillna(0), y_train)
+        return model, X_train, y_train
     raise ValueError('Not enough data to fit any model')
+
+
+def validate_model(model, X_train, y_train):
+    """Compute in-sample MAE/RMSE/MAPE for the fitted regression."""
+    preds = model.predict(X_train.fillna(0) if hasattr(X_train, 'fillna') else X_train)
+    stats = summarize_errors(y_train, preds)
+    stats['r2'] = float(model.score(X_train.fillna(0) if hasattr(X_train, 'fillna') else X_train, y_train))
+    stats['n_features'] = int(getattr(model, 'n_features_in_', X_train.shape[1]))
+    return stats
 
 
 def forecast(model, pivot, years=[2025,2026,2027], mobile_growth_rate=0.03, g4_increase_pp=3.0):
@@ -87,6 +103,9 @@ def main():
     obs = load_observations(df)
     pivot = prepare_features(obs)
     model, X_train, y_train = fit_model(pivot)
+    metrics = validate_model(model, X_train, y_train)
+    print('Model validation (in-sample):', metrics)
+    pd.DataFrame([metrics]).to_csv(OUT_DIR / 'account_ownership_model_metrics.csv', index=False)
     forecast_df = forecast(model, pivot)
     out_csv = OUT_DIR / 'account_ownership_forecast_2025_2027.csv'
     forecast_df.to_csv(out_csv, index=False)
@@ -100,6 +119,7 @@ def main():
     ax.set_xlabel('Year')
     ax.legend()
     fig.savefig(OUT_DIR / 'account_ownership_forecast.png')
+    plt.close(fig)
 
 if __name__ == '__main__':
     main()

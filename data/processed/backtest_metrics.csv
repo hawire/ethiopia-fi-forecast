@@ -1,0 +1,7 @@
+n,mae,rmse,mape,indicator,method,status,slope,intercept,r2
+2,7.139639639640336,7.1850249855872494,14.992166079124065,access,expanding_window,ok,,,
+4,5.754361956893831,6.1210626933201615,17.433324904431487,access,leave_one_out,ok,,,
+4,2.5,2.5008619203841644,7.224512743628339,access,in_sample_fit,ok,2.706896551724139,-5427.224137931036,0.9444061302681994
+0,,,,usage,expanding_window,insufficient_data,,,
+0,,,,usage,leave_one_out,insufficient_data,,,
+2,0.0,0.0,0.0,usage,in_sample_fit,ok,5.333333333333332,-10759.666666666664,1.0

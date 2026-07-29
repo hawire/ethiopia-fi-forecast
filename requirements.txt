@@ -8,3 +8,6 @@ xlrd
 scikit-learn
 streamlit
 pillow
+numpy
+pytest
+tabulate

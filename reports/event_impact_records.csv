@@ -1,0 +1,4 @@
+event,indicator,effect,confidence,magnitude,direction,lag_months,lag_years,decay,parent_id
+Telebirr national launch,digital_payments,0.045,high,moderate,increase,6,0,0.92,Telebirr
+M-Pesa Ethiopia launch,mobile_subscribers,0.048,medium,high,increase,3,0,0.88,M-Pesa
+Telebirr national launch,account_ownership,0.020999999999999998,medium,low,increase,12,1,0.88,Telebirr
